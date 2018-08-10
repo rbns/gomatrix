@@ -1,5 +1,7 @@
 package gomatrix
 
+import "github.com/rbns/gomatrix/event"
+
 // RespError is the standard JSON error response from Homeservers. It also implements the Golang "error" interface.
 // See http://matrix.org/docs/spec/client_server/r0.2.0.html#api-standards
 type RespError struct {
@@ -63,9 +65,9 @@ type RespJoinedMembers struct {
 
 // RespMessages is the JSON response for https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-rooms-roomid-messages
 type RespMessages struct {
-	Start string  `json:"start"`
-	Chunk []Event `json:"chunk"`
-	End   string  `json:"end"`
+	Start string        `json:"start"`
+	Chunk []event.Event `json:"chunk"`
+	End   string        `json:"end"`
 }
 
 // RespSendEvent is the JSON response for http://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-rooms-roomid-send-eventtype-txnid
@@ -134,35 +136,42 @@ type RespCreateRoom struct {
 type RespSync struct {
 	NextBatch   string `json:"next_batch"`
 	AccountData struct {
-		Events []Event `json:"events"`
+		Events []event.Event `json:"events"`
 	} `json:"account_data"`
 	Presence struct {
-		Events []Event `json:"events"`
+		Events []event.Event `json:"events"`
 	} `json:"presence"`
 	Rooms struct {
 		Leave map[string]struct {
 			State struct {
-				Events []Event `json:"events"`
+				Events []event.Event `json:"events"`
 			} `json:"state"`
 			Timeline struct {
-				Events    []Event `json:"events"`
-				Limited   bool    `json:"limited"`
-				PrevBatch string  `json:"prev_batch"`
+				Events    []event.Event `json:"events"`
+				Limited   bool          `json:"limited"`
+				PrevBatch string        `json:"prev_batch"`
 			} `json:"timeline"`
 		} `json:"leave"`
 		Join map[string]struct {
 			State struct {
-				Events []Event `json:"events"`
+				Events []event.Event `json:"events"`
 			} `json:"state"`
 			Timeline struct {
-				Events    []Event `json:"events"`
-				Limited   bool    `json:"limited"`
-				PrevBatch string  `json:"prev_batch"`
+				Events    []event.Event `json:"events"`
+				Limited   bool          `json:"limited"`
+				PrevBatch string        `json:"prev_batch"`
 			} `json:"timeline"`
+			Ephemeral struct {
+				Events []event.Event `json:"events"`
+			} `json:"ephemeral"`
+			UnreadNotifications struct {
+				HighlightCount    int `json:"highlight_count"`
+				NotificationCount int `json:"notification_count"`
+			}
 		} `json:"join"`
 		Invite map[string]struct {
 			State struct {
-				Events []Event
+				Events []event.Event
 			} `json:"invite_state"`
 		} `json:"invite"`
 	} `json:"rooms"`

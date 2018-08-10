@@ -3,6 +3,8 @@ package gomatrix
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/rbns/gomatrix/event"
 )
 
 func Example_sync() {
@@ -10,7 +12,7 @@ func Example_sync() {
 	cli.Store.SaveFilterID("@example:matrix.org", "2")                // Optional: if you know it already
 	cli.Store.SaveNextBatch("@example:matrix.org", "111_222_333_444") // Optional: if you know it already
 	syncer := cli.Syncer.(*DefaultSyncer)
-	syncer.OnEventType("m.room.message", func(ev *Event) {
+	syncer.OnEventType("m.room.message", func(ev *event.Event) {
 		fmt.Println("Message: ", ev)
 	})
 

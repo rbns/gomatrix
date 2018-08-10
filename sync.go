@@ -3,6 +3,7 @@ package gomatrix
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/rbns/gomatrix/event"
 	"runtime/debug"
 	"time"
 )
@@ -29,7 +30,7 @@ type DefaultSyncer struct {
 }
 
 // OnEventListener can be used with DefaultSyncer.OnEventType to be informed of incoming events.
-type OnEventListener func(*Event)
+type OnEventListener func(*event.Event)
 
 // NewDefaultSyncer returns an instantiated DefaultSyncer
 func NewDefaultSyncer(userID string, store Storer) *DefaultSyncer {
@@ -55,14 +56,14 @@ func (s *DefaultSyncer) ProcessResponse(res *RespSync, since string) (err error)
 
 	for roomID, roomData := range res.Rooms.Join {
 		room := s.getOrCreateRoom(roomID)
-		for _, event := range roomData.State.Events {
-			event.RoomID = roomID
-			room.UpdateState(&event)
-			s.notifyListeners(&event)
+		for _, e := range roomData.State.Events {
+			e.RoomID = roomID
+			room.UpdateState(&e)
+			s.notifyListeners(&e)
 		}
-		for _, event := range roomData.Timeline.Events {
-			event.RoomID = roomID
-			s.notifyListeners(&event)
+		for _, e := range roomData.Timeline.Events {
+			e.RoomID = roomID
+			s.notifyListeners(&e)
 		}
 	}
 	for roomID, roomData := range res.Rooms.Invite {
@@ -112,13 +113,8 @@ func (s *DefaultSyncer) shouldProcessResponse(resp *RespSync, since string) bool
 	for roomID, roomData := range resp.Rooms.Join {
 		for i := len(roomData.Timeline.Events) - 1; i >= 0; i-- {
 			e := roomData.Timeline.Events[i]
-			if e.Type == "m.room.member" && e.StateKey != nil && *e.StateKey == s.UserID {
-				m := e.Content["membership"]
-				mship, ok := m.(string)
-				if !ok {
-					continue
-				}
-				if mship == "join" {
+			if c, ok := e.Content.(event.RoomMember); ok && e.StateKey != nil && *e.StateKey == s.UserID {
+				if c.Membership == "join" {
 					_, ok := resp.Rooms.Join[roomID]
 					if !ok {
 						continue
@@ -143,13 +139,13 @@ func (s *DefaultSyncer) getOrCreateRoom(roomID string) *Room {
 	return room
 }
 
-func (s *DefaultSyncer) notifyListeners(event *Event) {
-	listeners, exists := s.listeners[event.Type]
+func (s *DefaultSyncer) notifyListeners(e *event.Event) {
+	listeners, exists := s.listeners[e.Type]
 	if !exists {
 		return
 	}
 	for _, fn := range listeners {
-		fn(event)
+		fn(e)
 	}
 }
 

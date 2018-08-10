@@ -1,5 +1,7 @@
 package gomatrix
 
+import "github.com/rbns/gomatrix/event"
+
 // ReqRegister is the JSON request for http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-register
 type ReqRegister struct {
 	Username                 string      `json:"username,omitempty"`
@@ -31,7 +33,7 @@ type ReqCreateRoom struct {
 	Invite          []string               `json:"invite,omitempty"`
 	Invite3PID      []ReqInvite3PID        `json:"invite_3pid,omitempty"`
 	CreationContent map[string]interface{} `json:"creation_content,omitempty"`
-	InitialState    []Event                `json:"initial_state,omitempty"`
+	InitialState    []event.Event          `json:"initial_state,omitempty"`
 	Preset          string                 `json:"preset,omitempty"`
 	IsDirect        bool                   `json:"is_direct,omitempty"`
 }
