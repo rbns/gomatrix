@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/rbns/gomatrix/event"
+	"github.com/rbns/gomatrix/response"
 	"runtime/debug"
 	"time"
 )
@@ -13,9 +14,9 @@ type Syncer interface {
 	// Process the /sync response. The since parameter is the since= value that was used to produce the response.
 	// This is useful for detecting the very first sync (since=""). If an error is return, Syncing will be stopped
 	// permanently.
-	ProcessResponse(resp *RespSync, since string) error
+	ProcessResponse(resp *response.Sync, since string) error
 	// OnFailedSync returns either the time to wait before retrying or an error to stop syncing permanently.
-	OnFailedSync(res *RespSync, err error) (time.Duration, error)
+	OnFailedSync(res *response.Sync, err error) (time.Duration, error)
 	// GetFilterJSON for the given user ID. NOT the filter ID.
 	GetFilterJSON(userID string) json.RawMessage
 }
@@ -43,7 +44,7 @@ func NewDefaultSyncer(userID string, store Storer) *DefaultSyncer {
 
 // ProcessResponse processes the /sync response in a way suitable for bots. "Suitable for bots" means a stream of
 // unrepeating events. Returns a fatal error if a listener panics.
-func (s *DefaultSyncer) ProcessResponse(res *RespSync, since string) (err error) {
+func (s *DefaultSyncer) ProcessResponse(res *response.Sync, since string) (err error) {
 	if !s.shouldProcessResponse(res, since) {
 		return
 	}
@@ -99,7 +100,7 @@ func (s *DefaultSyncer) OnEventType(eventType string, callback OnEventListener) 
 
 // shouldProcessResponse returns true if the response should be processed. May modify the response to remove
 // stuff that shouldn't be processed.
-func (s *DefaultSyncer) shouldProcessResponse(resp *RespSync, since string) bool {
+func (s *DefaultSyncer) shouldProcessResponse(resp *response.Sync, since string) bool {
 	if since == "" {
 		return false
 	}
@@ -150,7 +151,7 @@ func (s *DefaultSyncer) notifyListeners(e *event.Event) {
 }
 
 // OnFailedSync always returns a 10 second wait period between failed /syncs, never a fatal error.
-func (s *DefaultSyncer) OnFailedSync(res *RespSync, err error) (time.Duration, error) {
+func (s *DefaultSyncer) OnFailedSync(res *response.Sync, err error) (time.Duration, error) {
 	return 10 * time.Second, nil
 }
 
